@@ -1,0 +1,24 @@
+{
+  "name": "faker-xd",
+  "version": "1.0.0",
+  "description": "An Adobe XD plugin wrapper for Marak/faker.js",
+  "main": "main.js",
+  "scripts": {
+    "test": "webpack --mode production && ncp ./build %npm_config_XDDIR%",
+    "build": "webpack --mode production"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cross-env": "^7.0.2",
+    "faker": "^4.1.0",
+    "moment": "^2.24.0"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^6.0.4",
+    "html-loader": "^1.3.0",
+    "ncp": "^2.0.0",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
+  }
+}

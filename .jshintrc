@@ -1,0 +1,6 @@
+{
+    "node": true,
+    "expr": true,
+    "esversion": 6,
+    "devel": true
+}

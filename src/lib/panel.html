@@ -1,0 +1,390 @@
+<style>
+  #container,
+  #helperText {
+    text-align: left !important;
+  }
+  .small {
+    font-style: italic;
+  }
+  .inputLabel {
+    font-size: 0.625rem;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  .fakerOptions {
+    height: 0;
+    overflow: hidden;
+  }
+  .fakerOptions.show {
+    height: auto;
+  }
+  .fakerCategory {
+    color: #8e8e8e;
+    font-size: 0.875rem;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: #ffffff;
+    margin: 4px 0;
+    padding: 10px 5px;
+    background-image: url("./images/chevron-forward.png");
+    background-size: contain;
+    background-position: right center;
+  }
+  .fakerCategory:hover {
+    border-color: #a2a2a2;
+  }
+  .fakerCategory.active {
+    background-image: url("./images/chevron-down.png");
+    border-color: #a2a2a2;
+  }
+  .fakerBtn {
+    color: #8e8e8e;
+    font-size: 0.875rem;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: #f5f5f5;
+    margin: 4px 0 4px 15px;
+    padding: 10px 5px;
+  }
+  .fakerBtn:hover {
+    background: #fafafa;
+  }
+  .fakerDisabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .fakerDisabled .fakerCategory:hover {
+    border-color: transparent;
+  }
+  .fakerDisabled .fakerBtn:hover {
+    background: #f5f5f5;
+  }
+  #fakerPattern {
+    width: 100%;
+    margin: 0;
+  }
+  #formatGroup {
+    padding-bottom: 5px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 10px;
+  }
+  #formatGroup .controls {
+    display: flex;
+    width: 100%;
+    margin-left: -5px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #fakerLocale {
+    width: 100%;
+    margin: 0;
+  }
+</style>
+<div id="container">
+  <div id="formatPanel">
+    <div id="formatGroup">
+      <p class="inputLabel">Format:</p>
+      <textarea id="fakerPattern" height="106" disabled> </textarea>
+      <p id="helperText" class="small"></p>
+      <div class="controls">
+        <button
+          id="clearButton"
+          uxp-variant="secondary"
+          uxp-quiet="true"
+          disabled
+        >
+          Clear Format
+        </button>
+        <button id="genButton" uxp-variant="cta">Generate</button>
+      </div>
+    </div>
+    <div>
+      <p>
+        <a href="https://github.com/rarrindell/faker-xd"
+          >Help &amp; Documentation</a
+        >
+      </p>
+    </div>
+    <div id="accordionButtons" class="fakerAccordion">
+      <div class="fakerCategory">Address</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{address.zipCode}}">Zip Code</div>
+        <div class="fakerBtn" data-pattern="{{address.city}}">City</div>
+        <div class="fakerBtn" data-pattern="{{address.cityPrefix}}">
+          City Prefix
+        </div>
+        <div class="fakerBtn" data-pattern="{{address.citySuffix}}">
+          City Suffix
+        </div>
+        <div class="fakerBtn" data-pattern="{{address.streetName}}">
+          Street Name
+        </div>
+        <div class="fakerBtn" data-pattern="{{address.streetAddress}}">
+          Street Address
+        </div>
+        <div class="fakerBtn" data-pattern="{{address.streetSuffix}}">
+          Street Suffix
+        </div>
+        <div class="fakerBtn" data-pattern="{{address.streetPrefix}}">
+          Street Prefix
+        </div>
+        <div class="fakerBtn" data-pattern="{{address.secondaryAddress}}">
+          Secondary Address
+        </div>
+        <div class="fakerBtn" data-pattern="{{address.county}}">County</div>
+        <div class="fakerBtn" data-pattern="{{address.country}}">Country</div>
+        <div class="fakerBtn" data-pattern="{{address.countryCode}}">
+          Country Code
+        </div>
+        <div class="fakerBtn" data-pattern="{{address.state}}">State</div>
+        <div class="fakerBtn" data-pattern="{{address.stateAbbr}}">
+          State Abbr
+        </div>
+        <div class="fakerBtn" data-pattern="{{address.latitude}}">Latitude</div>
+        <div class="fakerBtn" data-pattern="{{address.longitude}}">
+          Longitude
+        </div>
+      </div>
+      <div class="fakerCategory">Commerce</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{commerce.color}}">Color</div>
+        <div class="fakerBtn" data-pattern="{{commerce.department}}">
+          Department
+        </div>
+        <div class="fakerBtn" data-pattern="{{commerce.productName}}">
+          Product Name
+        </div>
+        <div class="fakerBtn" data-pattern="{{commerce.price}}">Price</div>
+        <div class="fakerBtn" data-pattern="{{commerce.productAdjective}}">
+          Product Adjective
+        </div>
+        <div class="fakerBtn" data-pattern="{{commerce.productMaterial}}">
+          Product Material
+        </div>
+        <div class="fakerBtn" data-pattern="{{commerce.product}}">Product</div>
+      </div>
+      <div class="fakerCategory">Company</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{company.suffixes}}">Suffixes</div>
+        <div class="fakerBtn" data-pattern="{{company.companyName}}">
+          Company Name
+        </div>
+        <div class="fakerBtn" data-pattern="{{company.companySuffix}}">
+          Company Suffix
+        </div>
+        <div class="fakerBtn" data-pattern="{{company.catchPhrase}}">
+          Catch Phrase
+        </div>
+        <div class="fakerBtn" data-pattern="{{company.bs}}">BS</div>
+        <div class="fakerBtn" data-pattern="{{company.catchPhraseAdjective}}">
+          Catch Phrase Adjective
+        </div>
+        <div class="fakerBtn" data-pattern="{{company.catchPhraseDescriptor}}">
+          Catch Phrase Descriptor
+        </div>
+        <div class="fakerBtn" data-pattern="{{company.catchPhraseNoun}}">
+          Catch Phrase Noun
+        </div>
+        <div class="fakerBtn" data-pattern="{{company.bsAdjective}}">
+          BS Adjective
+        </div>
+        <div class="fakerBtn" data-pattern="{{company.bsBuzz}}">BS Buzz</div>
+        <div class="fakerBtn" data-pattern="{{company.bsNoun}}">BS Noun</div>
+      </div>
+      <div class="fakerCategory">Database</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{database.column}}">Column</div>
+        <div class="fakerBtn" data-pattern="{{database.type}}">Type</div>
+        <div class="fakerBtn" data-pattern="{{database.collation}}">
+          Collation
+        </div>
+        <div class="fakerBtn" data-pattern="{{database.engine}}">Engine</div>
+      </div>
+      <div class="fakerCategory">Date</div>
+      <div class="fakerOptions">
+        <div
+          class="fakerBtn"
+          data-pattern='{{dateFormat.relative({"min":0.0001,"max":5})}}'
+        >
+          Relative Date
+        </div>
+        <div
+          class="fakerBtn"
+          data-pattern='{{dateFormat.between({"from":"01-01-2000 00:00:00","to":"01-01-2001 00:00:00","format":"Do MMMM YYYY"})}}'
+        >
+          Between Dates
+        </div>
+        <div
+          class="fakerBtn"
+          data-pattern='{{dateFormat.future({"years":3,"format":"Do MMMM YYYY"})}}'
+        >
+          Future Date
+        </div>
+        <div
+          class="fakerBtn"
+          data-pattern='{{dateFormat.past({"years":3,"format":"Do MMMM YYYY"})}}'
+        >
+          Past Date
+        </div>
+        <div
+          class="fakerBtn"
+          data-pattern='{{dateFormat.recent({"days":3,"format":"Do MMMM YYYY"})}}'
+        >
+          Recent Date
+        </div>
+        <div
+          class="fakerBtn"
+          data-pattern='{{dateFormat.recent({"days":3,"format":"Do MMMM YYYY"})}}'
+        >
+          Soon Date
+        </div>
+      </div>
+      <div class="fakerCategory">Finance</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{finance.account}}">Account</div>
+        <div class="fakerBtn" data-pattern="{{finance.accountName}}">
+          Account Name
+        </div>
+        <div class="fakerBtn" data-pattern="{{finance.mask}}">Mask</div>
+        <div class="fakerBtn" data-pattern="{{finance.amount}}">Amount</div>
+        <div class="fakerBtn" data-pattern="{{finance.transactionType}}">
+          Transaction Type
+        </div>
+        <div class="fakerBtn" data-pattern="{{finance.currencyCode}}">
+          Currency Code
+        </div>
+        <div class="fakerBtn" data-pattern="{{finance.currencyName}}">
+          Currency Name
+        </div>
+        <div class="fakerBtn" data-pattern="{{finance.currencySymbol}}">
+          Currency Symbol
+        </div>
+        <div class="fakerBtn" data-pattern="{{finance.bitcoinAddress}}">
+          Bitcoin Address
+        </div>
+        <div class="fakerBtn" data-pattern="{{finance.iban}}">IBAN</div>
+        <div class="fakerBtn" data-pattern="{{finance.bic}}">BIC</div>
+      </div>
+      <div class="fakerCategory">Hacker</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{hacker.abbreviation}}">
+          Abbreviation
+        </div>
+        <div class="fakerBtn" data-pattern="{{hacker.adjective}}">
+          Adjective
+        </div>
+        <div class="fakerBtn" data-pattern="{{hacker.noun}}">Noun</div>
+        <div class="fakerBtn" data-pattern="{{hacker.verb}}">Verb</div>
+        <div class="fakerBtn" data-pattern="{{hacker.ingverb}}">Ingverb</div>
+        <div class="fakerBtn" data-pattern="{{hacker.phrase}}">Phrase</div>
+      </div>
+      <div class="fakerCategory">Internet</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{internet.email}}">Email</div>
+        <div class="fakerBtn" data-pattern="{{internet.exampleEmail}}">
+          Example Email
+        </div>
+        <div class="fakerBtn" data-pattern="{{internet.userName}}">
+          User Name
+        </div>
+        <div class="fakerBtn" data-pattern="{{internet.protocol}}">
+          Protocol
+        </div>
+        <div class="fakerBtn" data-pattern="{{internet.url}}">Url</div>
+        <div class="fakerBtn" data-pattern="{{internet.domainName}}">
+          Domain Name
+        </div>
+        <div class="fakerBtn" data-pattern="{{internet.domainSuffix}}">
+          Domain Suffix
+        </div>
+        <div class="fakerBtn" data-pattern="{{internet.domainWord}}">
+          Domain Word
+        </div>
+        <div class="fakerBtn" data-pattern="{{internet.ip}}">IP</div>
+        <div class="fakerBtn" data-pattern="{{internet.ipv6}}">IPv6</div>
+        <div class="fakerBtn" data-pattern="{{internet.userAgent}}">
+          User Agent
+        </div>
+        <div class="fakerBtn" data-pattern="{{internet.color}}">Color</div>
+        <div class="fakerBtn" data-pattern="{{internet.mac}}">MAC</div>
+        <div class="fakerBtn" data-pattern="{{internet.password}}">
+          Password
+        </div>
+      </div>
+      <div class="fakerCategory">Lorem</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{lorem.word}}">Word</div>
+        <div class="fakerBtn" data-pattern="{{lorem.words}}">Words</div>
+        <div class="fakerBtn" data-pattern="{{lorem.sentence}}">Sentence</div>
+        <div class="fakerBtn" data-pattern="{{lorem.slug}}">Slug</div>
+        <div class="fakerBtn" data-pattern="{{lorem.sentences}}">Sentences</div>
+        <div class="fakerBtn" data-pattern="{{lorem.paragraph}}">Paragraph</div>
+        <div class="fakerBtn" data-pattern="{{lorem.paragraphs}}">
+          Paragraphs
+        </div>
+        <div class="fakerBtn" data-pattern="{{lorem.text}}">Text</div>
+        <div class="fakerBtn" data-pattern="{{lorem.lines}}">Lines</div>
+      </div>
+      <div class="fakerCategory">Name</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{name.firstName}}">First Name</div>
+        <div class="fakerBtn" data-pattern="{{name.lastName}}">Last Name</div>
+        <div class="fakerBtn" data-pattern="{{name.findName}}">Find Name</div>
+        <div class="fakerBtn" data-pattern="{{name.jobTitle}}">Job Title</div>
+        <div class="fakerBtn" data-pattern="{{name.prefix}}">Prefix</div>
+        <div class="fakerBtn" data-pattern="{{name.suffix}}">Suffix</div>
+        <div class="fakerBtn" data-pattern="{{name.title}}">Title</div>
+        <div class="fakerBtn" data-pattern="{{name.jobDescriptor}}">
+          Job Descriptor
+        </div>
+        <div class="fakerBtn" data-pattern="{{name.jobArea}}">Job Area</div>
+        <div class="fakerBtn" data-pattern="{{name.jobType}}">Job Type</div>
+      </div>
+      <div class="fakerCategory">Phone</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{phone.phoneNumber}}">
+          Phone Number
+        </div>
+        <div class="fakerBtn" data-pattern="{{phone.phoneNumberFormat}}">
+          Phone Number Format
+        </div>
+        <div class="fakerBtn" data-pattern="{{phone.phoneFormats}}">
+          Phone Formats
+        </div>
+      </div>
+      <div class="fakerCategory">Random</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{random.number}}">Number</div>
+        <div class="fakerBtn" data-pattern="{{random.uuid}}">UUID</div>
+        <div class="fakerBtn" data-pattern="{{random.boolean}}">Boolean</div>
+        <div class="fakerBtn" data-pattern="{{random.word}}">Word</div>
+        <div class="fakerBtn" data-pattern="{{random.words}}">Words</div>
+        <div class="fakerBtn" data-pattern="{{random.locale}}">Locale</div>
+        <div class="fakerBtn" data-pattern="{{random.alphaNumeric}}">
+          Alpha Numeric
+        </div>
+      </div>
+      <div class="fakerCategory">System</div>
+      <div class="fakerOptions">
+        <div class="fakerBtn" data-pattern="{{system.fileName}}">File Name</div>
+        <div class="fakerBtn" data-pattern="{{system.commonFileName}}">
+          Common File Name
+        </div>
+        <div class="fakerBtn" data-pattern="{{system.mimeType}}">MIME Type</div>
+        <div class="fakerBtn" data-pattern="{{system.commonFileType}}">
+          Common File Type
+        </div>
+        <div class="fakerBtn" data-pattern="{{system.commonFileExt}}">
+          Common File Ext
+        </div>
+        <div class="fakerBtn" data-pattern="{{system.fileType}}">File Type</div>
+        <div class="fakerBtn" data-pattern="{{system.fileExt}}">File Ext</div>
+        <div class="fakerBtn" data-pattern="{{system.semver}}">Semver</div>
+      </div>
+    </div>
+    <div>
+      <p class="inputLabel">Language:</p>
+      <select id="fakerLocale"></select>
+    </div>
+  </div>
+</div>
