@@ -1,14 +1,7 @@
 const Scenegraph = require("scenegraph"),
-  Point = Scenegraph.Point,
-  Text = Scenegraph.Text,
-  Color = Scenegraph.Color,
-  selection = Scenegraph.selection,
-  assets = require("assets"),
-  viewport = require("viewport"),
-  Faker = require("faker"),
+  Faker = require("@faker-js/faker"),
   moment = require("moment"),
   app = require("application"),
-  fs = require("uxp").storage.localFileSystem,
   selectedNodes = [],
   selectedFormats = [],
   locales = {
@@ -49,134 +42,86 @@ const Scenegraph = require("scenegraph"),
     zh_CN: "简体中文",
     zh_TW: "繁體中文",
   };
-var btnGenerate,
+let btnGenerate,
   btnClear,
   inputFormat,
   helperText,
   accordionButtons,
   fakerLocale,
-  prefs = {},
   previousFormat,
-  delayedSelection;
-
-/**
- * Override Faker with formatted date functions
- */
-Faker.dateFormat = {
-  between: function (obj) {
-    try {
-      if (typeof obj === "string") obj = JSON.parse(obj);
-    } catch (e) {
-      obj = {};
-    }
-    let from = obj.from || new Date(Date.now() - 604800000);
-    let to = obj.to || new Date(Date.now() + 604800000);
-    let format = obj.format || undefined;
-    let date = Faker.date.between(from, to);
-    return moment(date).format(format);
-  },
-  future: function (obj) {
-    try {
-      if (typeof obj === "string") obj = JSON.parse(obj);
-    } catch (e) {
-      obj = {};
-    }
-    let years = obj.years || undefined;
-    let refDate = obj.refDate || undefined;
-    let format = obj.format || undefined;
-    let date = Faker.date.future(years, refDate);
-    return moment(date).format(format);
-  },
-  past: function (obj) {
-    try {
-      if (typeof obj === "string") obj = JSON.parse(obj);
-    } catch (e) {
-      obj = {};
-    }
-    let years = obj.years || undefined;
-    let refDate = obj.refDate || undefined;
-    let format = obj.format || undefined;
-    let date = Faker.date.past(years, refDate);
-    return moment(date).format(format);
-  },
-  recent: function (obj) {
-    try {
-      if (typeof obj === "string") obj = JSON.parse(obj);
-    } catch (e) {
-      obj = {};
-    }
-    let days = obj.days || undefined;
-    let refDate = obj.refDate || undefined;
-    let format = obj.format || undefined;
-    let date = Faker.date.recent(days, refDate);
-    return moment(date).format(format);
-  },
-  soon: function (obj) {
-    try {
-      if (typeof obj === "string") obj = JSON.parse(obj);
-    } catch (e) {
-      obj = {};
-    }
-    let days = obj.days || undefined;
-    let refDate = obj.refDate || undefined;
-    let format = obj.format || undefined;
-    let date = Faker.date.soon(days, refDate);
-    return moment(date).format(format);
-  },
-  relative: function (obj) {
-    try {
-      if (typeof obj === "string") obj = JSON.parse(obj);
-    } catch (e) {
-      obj = {};
-    }
-    let min = obj.min || 0;
-    let max = obj.max || 7;
-    let count = Faker.random.number({ min: min, max: max, precision: 0.00001 });
-    return moment.duration(count, "days").humanize();
-  },
+  delayedSelection,
+  formatPanel,
+  validationMessage,
+  validSelection = false;
+const pluginId = "632aeb77";
+const preferences = {
+  locale: "en",
+  systemLocale: "en",
 };
+let fakerInst = Faker.fakerEN;
 
 /**
  * Get an array of text nodes from selection
- **/
-function getTextNodes(items) {
+ * @param {Scenegraph.SceneNode[]} items
+ * @param {Scenegraph.Selection} selection
+ */
+function getTextNodes(items, selection) {
   selectedNodes.length = 0;
   selectedFormats.length = 0;
+  validSelection = true;
 
-  for (let i = 0, j = items.length; i < j; i++) {
-    storeNode(items[i], true);
-  }
+  selectedNodes.push(...getTextNode(items, selection));
+  const formats = Array.from(
+    new Set(
+      selectedNodes.map((textNode) =>
+        textNode.pluginData ? textNode.pluginData : ""
+      )
+    )
+  );
+  console.log("Got formats", formats);
+  selectedFormats.push(...formats);
+  validSelection = validSelection && selectedNodes.length > 0;
 
   updatePanelUI();
 }
 
 /**
- * Recursive function to get text nodes from within groups
- **/
-function getTextChildren(children) {
-  for (let i = 0, j = children.length; i < j; i++) {
-    storeNode(children.at(i), true);
-  }
-}
-
-/**
- * Store text node and format
- **/
-function storeNode(node, children) {
-  if (node instanceof Text) {
-    selectedNodes.push(node);
-    let format = node.pluginData ? node.pluginData : "";
-    if (!selectedFormats.includes(format)) selectedFormats.push(format);
-  } else if (!node.mask && node.children && node.children.length) {
-    getTextChildren(node.children, true);
-  }
+ * Recursively select text nodes
+ * @param {Scenegraph.SceneNode[]} items
+ * @param {Scenegraph.Selection} selection
+ * @returns {Scenegraph.Text[]}
+ */
+function getTextNode(items, selection) {
+  const textNodes = [];
+  items.forEach((item) => {
+    if (selection.isInEditContext(item) === false) {
+      validSelection = false;
+      return;
+    }
+    if (item instanceof Scenegraph.Text) {
+      textNodes.push(item);
+    } else {
+      if (item.children && item.children.length) {
+        textNodes.push(...getTextNode(item.children, selection));
+      }
+    }
+  });
+  return textNodes;
 }
 
 /**
  * Updates panel UI for current state
  **/
 function updatePanelUI() {
+  console.log("Selection is valid?", validSelection);
   accordionButtons.classList.remove("fakerDisabled");
+  if (validSelection) {
+    formatPanel.classList.remove("hide");
+    validationMessage.classList.add("hide");
+  } else {
+    formatPanel.classList.add("hide");
+    validationMessage.classList.remove("hide");
+  }
 
   if (selectedNodes.length === 0) {
     // No selection or invalid selection
@@ -207,6 +152,7 @@ function updatePanelUI() {
     accordionButtons.classList.add("fakerDisabled");
     previousFormat = inputFormat.value = "";
     helperText.textContent = "Multiple formats selected";
+    eventPatternChange();
     btnClear.removeAttribute("disabled");
   }
 }
@@ -224,150 +170,103 @@ function eventClearFormats() {
  * Saves current format to all nodes & generates fake content
  **/
 function eventGenerateFormats() {
-  if (selectedNodes.length === 0) return createTextNode();
-
-  app.editDocument({ editLabel: "Faker generate formats" }, function (
-    selection
-  ) {
-    selectedNodes.forEach((node) => {
+  // if (selectedNodes.length === 0) return createTextNode();
+  if (!validSelection) return;
+  app.editDocument({ editLabel: "Faker Generate" }, function (selection) {
+    validSelection = true;
+    const textNodes = getTextNode(selection.items, selection);
+    if (!validSelection) return;
+    textNodes.forEach((node) => {
       // Keep existing format if multiple selected
-      if (selectedFormats.length > 1 && !node.pluginData) return;
+      if (selectedFormats.length > 1 && !node.pluginData) {
+        return;
+      }
       node.pluginData =
         selectedFormats.length > 1 ? node.pluginData : inputFormat.value;
-      if (!node.pluginData) return;
-
+      if (!node.pluginData) {
+        return;
+      }
       try {
-        node.text = getFakeText(node.pluginData);
+        let text = getFakeText(node.pluginData);
+        node.updateText(text);
       } catch (e) {
-        node.text = node.pluginData;
+        node.updateText(node.pluginData);
+        console.error(e);
       }
     });
   });
 }
 
 /**
- * Creates a populated text node and adds it to the scenegraph
- **/
-function createTextNode() {
-  if (!inputFormat.value) return;
-
-  app.editDocument({ editLabel: "Faker create text" }, function (selection) {
-    let node = new Scenegraph.Text();
-    node.pluginData = inputFormat.value;
-    try {
-      node.text = getFakeText(node.pluginData);
-    } catch (e) {
-      node.text = node.pluginData;
-    }
-    node.fill = new Color("black");
-    node.areaBox = { width: 360, height: node.fontSize * 1.1 };
-
-    //Add node to cetre of viewport
-    Scenegraph.root.addChild(node);
-    let viewportBounds = viewport.bounds;
-    let viewportCentre = {
-      x: viewportBounds.width / 2 + viewportBounds.x,
-      y: viewportBounds.height / 2 + viewportBounds.y,
-    };
-
-    let nodeOrigin = { x: node.areaBox.width / 2, y: node.areaBox.height / 2 };
-    node.placeInParentCoordinates(nodeOrigin, viewportCentre);
-
-    selection.items = [node];
-  });
-}
-
-/**
  * Processes string applying custom methods and Faker
+ * @param {string} pattern
  **/
 function getFakeText(pattern) {
-  pattern = pattern.replace(
-    /{{dateS\.([a-z]+)\('([^']*)'\)}}/g,
-    (match, func, param) => {
-      let replacement = match;
-      switch (func) {
-        case "format":
-          replacement = moment(Faker.date.future(5)).format(param);
-          break;
-        case "relative":
-          const data = [
-            {
-              label: "seconds",
-              abbr: "secs",
-              symbol: "s",
-              single: "second",
-              single_abbr: "sec",
-              min: 1,
-              max: 60,
-            },
-            {
-              label: "minutes",
-              abbr: "mins",
-              symbol: "m",
-              single: "minute",
-              single_abbr: "min",
-              min: 1,
-              max: 60,
-            },
-            {
-              label: "hours",
-              abbr: "hrs",
-              symbol: "h",
-              single: "hour",
-              single_abbr: "hr",
-              min: 1,
-              max: 24,
-            },
-            {
-              label: "days",
-              abbr: "days",
-              symbol: "d",
-              single: "day",
-              single_abbr: "day",
-              min: 1,
-              max: 31,
-            },
-            {
-              label: "months",
-              abbr: "mos",
-              symbol: "M",
-              single: "month",
-              single_abbr: "mo",
-              min: 1,
-              max: 12,
-            },
-            {
-              label: "years",
-              abbr: "yrs",
-              symbol: "Y",
-              single: "year",
-              single_abbr: "yr",
-              min: 1,
-              max: 6,
-            },
-          ];
-          let obj = data[Math.floor(Math.random() * data.length)];
-          let num = Math.floor(Math.random() * (obj.max - obj.min)) + obj.min;
-          switch (param.length) {
-            case 1:
-              replacement = `${num}${obj.symbol}`;
-              break;
-            case 2:
-              replacement =
-                num > 1 ? `${num} ${obj.abbr}` : `${num} ${obj.single_abbr}`;
-              break;
-            default:
-              replacement =
-                num > 1 ? `${num} ${obj.label}` : `${num} ${obj.single}`;
-              break;
-          }
-          break;
-      }
-      return replacement;
-    }
-  );
+  pattern = pattern.replace(/{{dateFormat\.(.*?)}}/gm, (match, func) => {
+    let startArgs = func.indexOf("(");
+    let endArgs = func.lastIndexOf(")");
+    if (startArgs < 0) startArgs = func.length;
+    if (endArgs < 0) endArgs = func.length;
 
-  return Faker.fake(pattern);
+    const functionName = func.substring(0, startArgs);
+    const argString = func.substring(startArgs + 1, endArgs);
+    let args = {};
+
+    try {
+      args = JSON.parse(argString);
+    } catch (e) {}
+
+    let replacement = "";
+    let format = undefined;
+    let date;
+    switch (functionName) {
+      case "recent":
+        format = args.format || undefined;
+        date = fakerInst.date.recent({
+          days: args.days || undefined,
+          refDate: args.refDate,
+        });
+        replacement = moment(date).format(format);
+        break;
+      case "past":
+        format = args.format || undefined;
+        date = fakerInst.date.past({
+          years: args.years || undefined,
+          refDate: args.refDate || undefined,
+        });
+        replacement = moment(date).format(format);
+        break;
+      case "future":
+        format = args.format || undefined;
+        date = fakerInst.date.future({
+          years: args.years || undefined,
+          refDate: args.refDate || undefined,
+        });
+        replacement = moment(date).format(format);
+        break;
+      case "between":
+        format = args.format || undefined;
+        date = fakerInst.date.between({
+          from: args.from || new Date(Date.now() - 604800000),
+          to: args.to || new Date(Date.now() + 604800000),
+        });
+        replacement = moment(date).format(format);
+        break;
+      case "relative":
+        let count = fakerInst.number.float({
+          min: args.min || 0,
+          max: args.max || 7,
+          fractionDigits: 5,
+        });
+        replacement = moment.duration(count, "days").humanize();
+        break;
+      default:
+        break;
+    }
+    return replacement;
+  });
+
+  return fakerInst.helpers.fake(pattern);
 }
 
 /**
@@ -479,6 +378,7 @@ function appendFormat(node) {
  * Handle format change events
  **/
 function eventPatternChange(e) {
+  console.log("Pattern change", inputFormat.value, selectedFormats.length);
   if (!inputFormat.value && selectedFormats.length <= 1) {
     btnGenerate.setAttribute("disabled", "");
   } else {
@@ -492,23 +392,26 @@ function eventPatternChange(e) {
  **/
 function eventLocaleChange(e) {
   try {
-    Faker.locale = fakerLocale.value;
-    moment.locale(fakerLocale.value);
+    if (Faker.allFakers[fakerLocale.value]) {
+      preferences.locale = fakerLocale.value;
+      fakerInst = Faker.allFakers[fakerLocale.value];
+      moment.locale(fakerLocale.value);
+    }
   } catch (e) {
     console.log("Error", e);
   }
-  prefs.locale = fakerLocale.value;
   updateHelperText(true);
-  savePrefs();
+  if (e) savePrefs();
 }
 
 /**
  * Generate panel UI
  **/
 function createPanel() {
-  const panelHTML = require("html-loader!./lib/panel.html");
-  let rootNode = document.createElement("panel");
-  rootNode.innerHTML = panelHTML;
+  console.log("Create Panel v1.1.20");
+  const panelHTML = require("./lib/panel.html");
+  let rootNode = document.createElement("div");
+  rootNode.innerHTML = panelHTML.default;
 
   fakerLocale = rootNode.querySelector("#fakerLocale");
   let options = [];
@@ -516,7 +419,7 @@ function createPanel() {
     options.push(`<option value="${i}">${locales[i]}</option>`);
   fakerLocale.innerHTML = options.join("");
   fakerLocale.addEventListener("change", eventLocaleChange);
-  fakerLocale.value = prefs.locale;
+  fakerLocale.value = preferences.locale;
 
   // Set panel UI listeners
   rootNode
@@ -533,6 +436,8 @@ function createPanel() {
   btnClear = rootNode.querySelector("#clearButton");
   helperText = rootNode.querySelector("#helperText");
   accordionButtons = rootNode.querySelector("#accordionButtons");
+  formatPanel = rootNode.querySelector("#formatPanel");
+  validationMessage = rootNode.querySelector("#validationMessage");
   btnGenerate.addEventListener("click", eventGenerateFormats);
   btnClear.addEventListener("click", eventClearFormats);
   return rootNode;
@@ -541,70 +446,73 @@ function createPanel() {
 /**
  * Load preferences from file system
  */
-async function getPrefs() {
-  const pluginDataFolder = await fs.getDataFolder();
-  let prefsFile;
+function getPrefs() {
   try {
-    prefsFile = await pluginDataFolder.getEntry("prefs.json");
-  } catch (e) {
-    prefsFile = null;
-  }
-  if (!prefsFile) {
+    let locale = Scenegraph.root.sharedPluginData.getItem(pluginId, "locale");
+    let systemLocale = locale;
     let keys = Object.keys(locales);
-    prefs.locale = keys.includes(app.appLanguage) ? app.appLanguage : "en";
-    return;
+    if (!locale) {
+      locale = app.appLanguage;
+      systemLocale = app.systemLocale;
+    }
+    preferences.locale = keys.includes(locale) ? locale : "en";
+    preferences.systemLocale = systemLocale;
+  } catch (e) {
+    console.error(e);
   }
-  const contents = await prefsFile.read();
-  prefs = JSON.parse(contents);
 }
 
 /**
  * Save preferences to file system
  */
-async function savePrefs() {
-  const pluginDataFolder = await fs.getDataFolder();
-  let prefsFile;
+function savePrefs() {
   try {
-    prefsFile = await pluginDataFolder.getEntry("prefs.json");
+    app.editDocument(
+      { editLabel: "Change locale" },
+      async (selection, rootNode) => {
+        rootNode.sharedPluginData.setItem(
+          pluginId,
+          "locale",
+          preferences.locale
+        );
+      }
+    );
   } catch (e) {
-    prefsFile = await pluginDataFolder.createFile("prefs.json", {
-      overwrite: true,
-    });
+    console.error(e);
   }
-  await prefsFile.write(JSON.stringify(prefs));
 }
 
 /**
  * Attach panel UI
  **/
 function show(event) {
-  getPrefs()
-    .then(() => {
-      event.node.appendChild(createPanel());
-      eventLocaleChange();
-      update(delayedSelection);
-    })
-    .catch((e, x) => {
-      console.log("Error", e, x);
-    });
+  getPrefs();
+  event.node.appendChild(createPanel());
+  eventLocaleChange();
+  update(delayedSelection);
 }
 
 /**
  * Clean up panel UI
  **/
 function hide(event) {
+  console.log("Hide Panel", event);
   event.node.firstChild.remove();
 }
 
 /**
  * Updates list of selected text nodes
- **/
+ * @param {Scenegraph.XDSelection} selection
+ */
 function update(selection) {
   if (!btnClear) {
     delayedSelection = selection;
     return;
   }
-  getTextNodes(selection.items);
+
+  if (selection && selection.items) {
+    getTextNodes(selection.items, selection);
+  }
   delayedSelection = null;
 }
 
