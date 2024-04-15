@@ -1,6 +1,7 @@
-node_modules
 build
+node_modules
 plugin
-todo.txt
+.jshintrc
 .npmrc
 package-lock.json
+todo.txt
