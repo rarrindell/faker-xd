@@ -78,7 +78,6 @@ function getTextNodes(items, selection) {
       )
     )
   );
-  console.log("Got formats", formats);
   selectedFormats.push(...formats);
   validSelection = validSelection && selectedNodes.length > 0;
 
@@ -113,7 +112,6 @@ function getTextNode(items, selection) {
  * Updates panel UI for current state
  **/
 function updatePanelUI() {
-  console.log("Selection is valid?", validSelection);
   accordionButtons.classList.remove("fakerDisabled");
   if (validSelection) {
     formatPanel.classList.remove("hide");
@@ -378,7 +376,6 @@ function appendFormat(node) {
  * Handle format change events
  **/
 function eventPatternChange(e) {
-  console.log("Pattern change", inputFormat.value, selectedFormats.length);
   if (!inputFormat.value && selectedFormats.length <= 1) {
     btnGenerate.setAttribute("disabled", "");
   } else {
@@ -398,7 +395,7 @@ function eventLocaleChange(e) {
       moment.locale(fakerLocale.value);
     }
   } catch (e) {
-    console.log("Error", e);
+    console.error(e);
   }
   updateHelperText(true);
   if (e) savePrefs();
@@ -408,7 +405,6 @@ function eventLocaleChange(e) {
  * Generate panel UI
  **/
 function createPanel() {
-  console.log("Create Panel v1.1.20");
   const panelHTML = require("./lib/panel.html");
   let rootNode = document.createElement("div");
   rootNode.innerHTML = panelHTML.default;
@@ -496,7 +492,6 @@ function show(event) {
  * Clean up panel UI
  **/
 function hide(event) {
-  console.log("Hide Panel", event);
   event.node.firstChild.remove();
 }
 
